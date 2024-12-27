@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Pairs Trading Bot Visualization</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  </head>
+  <body>
+    <!-- 1) Spread and Rolling Mean Chart -->
+    <div id="plot"></div>
+
+    <!-- 2) Z-Score Chart -->
+    <div id="zScorePlot"></div>
+
+    <script>
+      /***********************************************************
+       * Socket Initialization
+       ***********************************************************/
+      const socket = io();
+
+      /***********************************************************
+       * 1) Spread + Rolling Mean Plot
+       ***********************************************************/
+      const spreadData = [
+        {
+          x: [],
+          y: [],
+          mode: 'lines',
+          name: 'Spread',
+          line: { color: 'blue' },
+          type: 'scatter',
+        },
+        {
+          x: [],
+          y: [],
+          mode: 'lines',
+          name: 'Rolling Mean',
+          line: { color: 'orange' },
+          type: 'scatter',
+        },
+        {
+          x: [],
+          y: [],
+          mode: 'markers',
+          name: 'Entry',
+          marker: {
+            symbol: 'arrow-up',
+            color: 'green',
+            size: 12,
+          },
+          type: 'scatter',
+        },
+        {
+          x: [],
+          y: [],
+          mode: 'markers',
+          name: 'Exit',
+          marker: {
+            symbol: 'arrow-down',
+            color: 'red',
+            size: 12,
+          },
+          type: 'scatter',
+        },
+      ];
+
+      const spreadLayout = {
+        title: 'Spread and Rolling Mean Over Time',
+        xaxis: { title: 'Time' },
+        yaxis: { title: 'Value' },
+      };
+
+      Plotly.newPlot('plot', spreadData, spreadLayout);
+
+      /***********************************************************
+       * 2) Z-Score Chart
+       ***********************************************************/
+      const zScoreData = [
+        {
+          x: [],
+          y: [],
+          mode: 'lines',
+          name: 'Z-Score',
+          line: { color: 'red' },
+          type: 'scatter',
+        },
+      ];
+
+      const zScoreLayout = {
+        title: 'Z-Score Over Time',
+        xaxis: { title: 'Time' },
+        yaxis: { title: 'Z-Score' },
+      };
+
+      Plotly.newPlot('zScorePlot', zScoreData, zScoreLayout);
+
+      /***********************************************************
+       * Socket Events
+       ***********************************************************/
+
+      // A) Real-time data updates (spread, rollingMean, zScore)
+      socket.on('data', function (msg) {
+        const timestamp = new Date(msg.timestamp);
+
+        // 1) Update the Spread + Rolling Mean chart
+        Plotly.extendTraces(
+          'plot',
+          {
+            x: [[timestamp], [timestamp]],
+            y: [[msg.spread], [msg.rollingMean]],
+          },
+          [0, 1]
+        );
+
+        // 2) Update the Z-Score chart (if valid zScore)
+        if (msg.zScore !== null && typeof msg.zScore !== 'undefined') {
+          Plotly.extendTraces(
+            'zScorePlot',
+            {
+              x: [[timestamp]],
+              y: [[msg.zScore]],
+            },
+            [0]
+          );
+        }
+      });
+
+      // B) Trade events (for marking entry/exit on first chart)
+      socket.on('trade', function (msg) {
+        const timestamp = new Date(msg.timestamp);
+        const yValue = msg.spread; // Use the spread as your Y value
+
+        if (msg.type === 'entry') {
+          // Plot entry marker (index 2 in spreadData)
+          Plotly.extendTraces(
+            'plot',
+            {
+              x: [[timestamp]],
+              y: [[yValue]],
+            },
+            [2]
+          );
+        } else if (msg.type === 'exit') {
+          // Plot exit marker (index 3 in spreadData)
+          Plotly.extendTraces(
+            'plot',
+            {
+              x: [[timestamp]],
+              y: [[yValue]],
+            },
+            [3]
+          );
+        }
+      });
+    </script>
+  </body>
+</html>

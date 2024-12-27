@@ -1,0 +1,23 @@
+{
+  "dependencies": {
+    "@dydxprotocol/v4-client-js": "^1.15.1",
+    "@jup-ag/core": "^4.0.0-beta.21",
+    "@solana/spl-token": "^0.4.9",
+    "@solana/web3.js": "^1.95.4",
+    "@solendprotocol/solend-sdk": "^0.13.20",
+    "axios": "^1.7.7",
+    "binance-api-node": "^0.12.9",
+    "bs58": "^6.0.0",
+    "csv-parser": "^3.0.0",
+    "danfojs-node": "^1.1.2",
+    "express": "^4.21.1",
+    "fs": "^0.0.1-security",
+    "path": "^0.12.7",
+    "simple-statistics": "^7.8.7",
+    "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.10.1"
+  }
+}
